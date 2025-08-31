@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mood Journal</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Mood Journal: Track Your Emotions</h1>
+    <form id="journal-form">
+        <textarea id="entry-text" placeholder="Write your journal entry..."></textarea>
+        <button type="submit">Submit Entry</button>
+    </form>
+    <canvas id="moodChart" width="400" height="200"></canvas>
+
+    <h2>Unlock Premium (Export Trends)</h2>
+    <input type="email" id="premium-email" placeholder="Your Email" required>
+    <input type="tel" id="premium-phone" placeholder="Your Phone (e.g., 2547...)" required>
+    <button id="premium-button">Pay Now (100 KES)</button>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

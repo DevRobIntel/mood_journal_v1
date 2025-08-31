@@ -1,0 +1,5 @@
+flask==3.0.3
+supabase  # Python client for Supabase
+requests==2.32.3  # For HF API
+python-dotenv==1.0.1  # For env vars
+intasend-python  # IntaSend SDK (pip install intasend)
