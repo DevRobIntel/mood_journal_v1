@@ -26,20 +26,18 @@ A web app for journaling, AI sentiment analysis, and mood trends. SDG 3 aligned.
 
 - Uses IntaSend collect.checkout for secure payment links.
 - Collects phone/email for M-Pesa/Card support.
-- In prod: Handle webhooks for confirmation.
 
 ## Development Process
 
-- [Add team details]
+- Developed by Robert Kibugi
+- Email - devrobertkibugi@gmail.com
+- Github - https://github.com/DevRobIntel
+- Linkedin - https://www.linkedin.com/in/robertkibugi/
 
 ## Testing
 
 ### Sample Journal Entry
 
-- **Date:** August 31, 2025
-- **Time:** 01:20 PM EAT
 - **Entry Text:** "Today was a productive day! I finally got the Mood Journal app running after resolving the Flask and IntaSend issues. Feeling excited about the hackathon deadline on September 2nd. The sentiment analysis seems to work well—looking forward to seeing my mood trends!"
 - **Expected Sentiment Score:** ~0.9 (positive sentiment)
-- **Instructions:** Paste this entry into the app's textarea and submit to verify functionality. Check the chart for the sentiment score.
-
-For enhancements: Add user auth, payment status polling.
+- **Instructions:** Paste this entry text into the app's textarea and submit to verify functionality. Check the chart for the sentiment score.
