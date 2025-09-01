@@ -99,6 +99,31 @@ def delete_entry(entry_id):
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/generate_recommendation', methods=['GET'])
+def generate_recommendation():
+    """Generate AI-powered mood recommendation (non-premium feature)."""
+    try:
+        # Fetch recent moods from Supabase
+        response = supabase.table('journal_entries').select('sentiment_score').order('created_at', desc=True).limit(5).execute()
+        if hasattr(response, 'error') and response.error:
+            return jsonify({'error': str(response.error)}), 500
+
+        scores = [entry['sentiment_score'] for entry in response.data]
+        avg_score = sum(scores) / len(scores) if scores else 0.5
+
+        # Generate recommendation based on average score
+        if avg_score < 0.4:
+            recommendation = "Your recent moods seem low. Try a short walk or talking to a friend to boost your spirits."
+        elif avg_score > 0.6:
+            recommendation = "Great job maintaining positive moods! Keep up the good work with journaling."
+        else:
+            recommendation = "Your moods are balanced. Consider adding exercise to stabilize them further."
+
+        return jsonify({'success': True, 'recommendation': recommendation})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/initiate_payment', methods=['POST'])
 def initiate_payment():

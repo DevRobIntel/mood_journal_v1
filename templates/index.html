@@ -2,23 +2,47 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mood Journal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood Journal: Track Your Emotions</title>
     <link rel="stylesheet" href="/static/css/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>Mood Journal: Track Your Emotions</h1>
-    <form id="journal-form">
-        <textarea id="entry-text" placeholder="Write your journal entry..."></textarea>
-        <button type="submit">Submit Entry</button>
-    </form>
-    <canvas id="moodChart" width="400" height="200"></canvas>
+    <header>
+        <h1>Mood Journal</h1>
+        <p>Track Your Emotions with AI</p>
+    </header>
 
-    <h2>Unlock Premium (Export Trends)</h2>
-    <input type="email" id="premium-email" placeholder="Your Email" required>
-    <input type="tel" id="premium-phone" placeholder="Your Phone (e.g., 2547...)" required>
-    <button id="premium-button">Pay Now (100 KES)</button>
+    <main>
+        <section id="journalSection">
+            <textarea id="entryText" rows="4" cols="50" placeholder="Write your journal entry here..."></textarea>
+            <button id="submitEntry">Submit Entry</button>
+            <p id="sentimentResult"></p>
+        </section>
+
+        <section id="chartSection">
+            <canvas id="moodChart"></canvas>
+        </section>
+
+        <section id="recommendationSection">
+            <h2>AI Mood Recommendation</h2>
+            <button id="getRecommendation">Get Recommendation</button>
+            <p id="recommendationText"></p>
+        </section>
+
+        <section id="premiumSection">
+            <h2>Unlock Premium (Export Trends)</h2>
+            <input type="email" id="premiumEmail" placeholder="Your Email">
+            <input type="tel" id="premiumPhone" placeholder="Your Phone (e.g., 2547...)">
+            <button id="payNow">Pay Now (100 KES)</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Mood Journal | Built for Vibe Coding 4-3-2 Hackathon</p>
+    </footer>
 
     <script src="/static/js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>

@@ -1,37 +1,11 @@
-// Chart init
-let moodChart;
-document.addEventListener('DOMContentLoaded', () => {
-    const ctx = document.getElementById('moodChart')?.getContext('2d');
-    if (!ctx) {
-        console.error('Canvas element not found!');
+// Entry submission
+document.getElementById('submitEntry').addEventListener('click', async () => {
+    const entryText = document.getElementById('entryText').value.trim();
+    if (!entryText) {
+        alert('Please enter a journal entry.');
         return;
     }
-    moodChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Mood Score (0-1)',
-                data: [],
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: { y: { beginAtZero: true, max: 1 } }
-        }
-    });
-    fetchEntries(); // Fetch after chart init
-});
-
-// Form submission
-document.getElementById('journal-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const entryText = document.getElementById('entry-text').value;
-    if (!entryText) return alert('Please enter text.');
-
+    document.getElementById('submitEntry').disabled = true;
     try {
         const response = await fetch('/add_entry', {
             method: 'POST',
@@ -40,54 +14,92 @@ document.getElementById('journal-form').addEventListener('submit', async (e) => 
         });
         const data = await response.json();
         if (data.success) {
-            alert(`Entry added! Sentiment score: ${data.sentiment_score}`);
-            document.getElementById('entry-text').value = '';
-            fetchEntries();
+            document.getElementById('sentimentResult').innerText = `Entry added! Sentiment score: ${data.sentiment_score.toFixed(2)}`;
+            document.getElementById('entryText').value = ''; // Clear input
+            updateChart();
         } else {
-            alert(data.error);
+            alert(`Error: ${data.error}`);
         }
     } catch (err) {
-        alert('Error: ' + err);
+        alert(`Error: ${err.message}`);
+    } finally {
+        document.getElementById('submitEntry').disabled = false;
     }
 });
 
-// Fetch entries
-async function fetchEntries() {
-    try {
-        const response = await fetch('/get_entries');
-        const data = await response.json();
-        console.log('Fetch Entries Data:', data); // Debug
-        if (data.labels) {
-            moodChart.data.labels = data.labels;
-            moodChart.data.datasets[0].data = data.scores;
-            moodChart.update();
-        } else {
-            console.warn('No labels in response:', data);
-        }
-    } catch (err) {
-        console.error('Error fetching entries:', err);
+// Chart update
+let moodChart;
+async function updateChart() {
+    const response = await fetch('/get_entries');
+    const data = await response.json();
+    if (data.labels && data.scores) {
+        const ctx = document.getElementById('moodChart').getContext('2d');
+        if (moodChart) moodChart.destroy(); // Destroy previous chart
+        moodChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Mood Score (0-1)',
+                    data: data.scores,
+                    borderColor: '#6B46C1',
+                    backgroundColor: 'rgba(107, 70, 193, 0.2)',
+                    fill: true,
+                    tension: 0.4 // Smooth line
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: true, max: 1 } },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
     }
 }
+updateChart(); // Initial load
 
-// Premium button: Collect email and phone
-document.getElementById('premium-button').addEventListener('click', async () => {
-    const email = document.getElementById('premium-email').value;
-    const phone = document.getElementById('premium-phone').value;
-    if (!email || !phone) return alert('Please enter email and phone number.');
+// Recommendation
+document.getElementById('getRecommendation').addEventListener('click', async () => {
+    document.getElementById('getRecommendation').disabled = true;
+    try {
+        const response = await fetch('/generate_recommendation');
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById('recommendationText').innerText = data.recommendation;
+        } else {
+            document.getElementById('recommendationText').innerText = `Error: ${data.error}`;
+        }
+    } catch (err) {
+        document.getElementById('recommendationText').innerText = `Error: ${err.message}`;
+    } finally {
+        document.getElementById('getRecommendation').disabled = false;
+    }
+});
 
+// Payment
+document.getElementById('payNow').addEventListener('click', async () => {
+    const phone = document.getElementById('premiumPhone').value.trim();
+    const email = document.getElementById('premiumEmail').value.trim();
+    if (!phone || !email) {
+        alert('Please enter both email and phone number.');
+        return;
+    }
+    document.getElementById('payNow').disabled = true;
     try {
         const response = await fetch('/initiate_payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, phone_number: phone })
+            body: JSON.stringify({ phone_number: phone, email: email })
         });
         const data = await response.json();
         if (data.checkout_url) {
-            window.location.href = data.checkout_url; // Redirect to IntaSend checkout
+            window.location.href = data.checkout_url;
         } else {
-            alert(data.error);
+            alert(data.error || 'Payment initiation failed');
         }
     } catch (err) {
-        alert('Error: ' + err);
+        alert(`Error: ${err.message}`);
+    } finally {
+        document.getElementById('payNow').disabled = false;
     }
 });
