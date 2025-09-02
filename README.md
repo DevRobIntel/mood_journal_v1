@@ -60,4 +60,4 @@ A web app for journaling, AI sentiment analysis, mood trends, and personalized m
 
 ## Deployment
 
-- Deployed on Render - https://mood-journal-v1-2.onrender.com
+- Deployed on Render - https://mood-journal-v1-3.onrender.com/
