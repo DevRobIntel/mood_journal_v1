@@ -76,15 +76,16 @@ document.getElementById('getRecommendation').addEventListener('click', async () 
     }
 });
 
-// Payment
-document.getElementById('payNow').addEventListener('click', async () => {
+// Payment (Updated to handle form submission)
+document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
     const phone = document.getElementById('premiumPhone').value.trim();
     const email = document.getElementById('premiumEmail').value.trim();
     if (!phone || !email) {
         alert('Please enter both email and phone number.');
         return;
     }
-    document.getElementById('payNow').disabled = true;
+    document.querySelector('#paymentForm button').disabled = true;
     try {
         const response = await fetch('/initiate_payment', {
             method: 'POST',
@@ -100,6 +101,23 @@ document.getElementById('payNow').addEventListener('click', async () => {
     } catch (err) {
         alert(`Error: ${err.message}`);
     } finally {
-        document.getElementById('payNow').disabled = false;
+        document.querySelector('#paymentForm button').disabled = false;
     }
 });
+
+// Check premium status and show export button
+async function checkPremiumStatus() {
+    const userId = '550e8400-e29b-41d4-a716-446655440000'; // Premium test user
+    try {
+        const response = await fetch(`/check_premium?user_id=${userId}`);
+        const data = await response.json();
+        if (data.is_premium) {
+            document.getElementById('exportButton').style.display = 'block';
+            document.getElementById('exportLink').href = `/export_trends?user_id=${userId}`;
+        }
+    } catch (err) {
+        console.error('Error checking premium status:', err);
+    }
+}
+checkPremiumStatus(); // Initial check
+setInterval(checkPremiumStatus, 30000); // Check every 30 seconds (optional)

@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response, redirect
 from supabase import create_client, Client
 import requests
 import os
 from dotenv import load_dotenv
 from intasend import APIService
 import datetime
+import uuid
 
 load_dotenv()
 
@@ -63,7 +64,7 @@ def add_entry():
         data = {
             'entry_text': entry_text,
             'sentiment_score': sentiment_score,
-            'created_at': datetime.datetime.utcnow().isoformat()  # Ensure created_at is set
+            'created_at': datetime.datetime.utcnow().isoformat()
         }
         insert_response = supabase.table('journal_entries').insert(data).execute()
         if hasattr(insert_response, 'error') and insert_response.error:
@@ -99,7 +100,7 @@ def delete_entry(entry_id):
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
+
 @app.route('/generate_recommendation', methods=['GET'])
 def generate_recommendation():
     """Generate AI-powered mood recommendation (non-premium feature)."""
@@ -123,7 +124,6 @@ def generate_recommendation():
         return jsonify({'success': True, 'recommendation': recommendation})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/initiate_payment', methods=['POST'])
 def initiate_payment():
@@ -154,8 +154,75 @@ def initiate_payment():
 
 @app.route('/payment_success')
 def payment_success():
-    """Success handler: In prod, verify via webhook or status check."""
-    return "Payment successful! Premium features unlocked. Return to the app."
+    """Success handler: Verify payment and update premium status."""
+    try:
+        # Simulate payment verification (replace with IntaSend webhook in production)
+        phone_number = request.args.get('phone_number')
+        email = request.args.get('email')
+        if not phone_number or not email:
+            return "Payment failed: Missing details.", 400
 
+        user_id = str(uuid.uuid4())  # Unique user ID
+        # Check if user exists, update or insert
+        user = supabase.table('users').select('id').eq('email', email).execute()
+        if user.data:
+            supabase.table('users').update({'phone_number': phone_number, 'is_premium': True}).eq('id', user.data[0]['id']).execute()
+        else:
+            supabase.table('users').insert({
+                'id': user_id,
+                'email': email,
+                'phone_number': phone_number,
+                'is_premium': True
+            }).execute()
+
+        return "Payment successful! Premium features unlocked. Return to the app."
+    except Exception as e:
+        return f"Payment success error: {str(e)}", 500
+    
+@app.route('/check_premium')
+def check_premium():
+    try:
+        user_id = request.args.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'User ID is required'}), 400
+
+        user = supabase.table('users').select('is_premium').eq('id', user_id).execute()
+        if not user.data or len(user.data) == 0:
+            return jsonify({'is_premium': False})
+        return jsonify({'is_premium': user.data[0]['is_premium']})
+    except Exception as e:
+        return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/export_trends')
+def export_trends():
+    """Export mood trends as CSV, including entry_text."""
+    try:
+        user_id = request.args.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'User ID is required'}), 400
+
+        user = supabase.table('users').select('is_premium').eq('id', user_id).execute()
+        if not user.data or not user.data[0]['is_premium']:
+            return jsonify({'error': 'Premium access required'}), 403
+
+        response = supabase.table('journal_entries').select('created_at, sentiment_score, entry_text').execute()
+        if hasattr(response, 'error') and response.error:
+            return jsonify({'error': str(response.error)}), 500
+
+        data = response.data
+        output = "Date,Sentiment Score,Entry Text\n"
+        for entry in data:
+            safe_entry_text = entry['entry_text'].replace('"', '""')
+            output += f"{entry['created_at']},{entry['sentiment_score']},\"{safe_entry_text}\"\n"
+        return Response(
+            output,
+            mimetype="text/csv",
+            headers={"Content-disposition": "attachment; filename=mood_trends.csv"}
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)  # Temporarily enable debug for testing
 if __name__ == '__main__':
     app.run(debug=False)
